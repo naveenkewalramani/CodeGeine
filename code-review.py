@@ -11,7 +11,10 @@ from rate_limiter import RateLimiter
 import openai
 
 GITHUB_API_URL = "https://api.github.com"
-OPEN_AI_URL = "https://gxs-dev-gpt4-eastus2.openai.azure.com/openai/deployments/gxsgpt4/chat/completions?api-version=2024-02-15-preview"
+OPEN_AI_URL = "https://gxs-dev-gpt4-eastus2.openai.azure.com"
+OPEN_AI_VERSION = "2024-02-15-preview"
+OPEN_API_KEY = "69c55726c0dc442ab79dd2aa71336a0a"
+OPEN_AI_TYPE = "azure"
 HEADERS = {}
 TOKEN_SIZE = 5120                   # Max tokens to send at once when splitting diffs
 MAX_TOKENS = 2048                   # response size
@@ -22,18 +25,14 @@ next_url = None                     # The url for the next set of PR records
 
 def print_asc_logo():
     logo = """
-    .----------------.  .----------------.  .----------------.  .----------------.  .----------------.
-    | .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |
-    | |  ____  ____  | || |      __      | || |     ______   | || |  _______     | || |   ______     | |
-    | | |_  _||_  _| | || |     /  \     | || |   .' ___  |  | || | |_   __ \    | || |  |_   _ \    | |
-    | |   \ \  / /   | || |    / /\ \    | || |  / .'   \_|  | || |   | |__) |   | || |    | |_) |   | |
-    | |    \ \/ /    | || |   / ____ \   | || |  | |         | || |   |  __ /    | || |    |  __'.   | |
-    | |    _|  |_    | || | _/ /    \ \_ | || |  \ `.___.'\  | || |  _| |  \ \_  | || |   _| |__) |  | |
-    | |   |______|   | || ||____|  |____|| || |   `._____.'  | || | |____| |___| | || |  |_______/   | |
-    | |              | || |              | || |              | || |              | || |              | |
-    | '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |
-    '----------------'  '----------------'  '----------------'  '----------------'  '----------------' """
-    print(colored(logo, "yellow"))
+     ## ##    ## ##   ### ##   ### ###            ## ##   ### ###    ####   ###  ##  ### ###
+    ##   ##  ##   ##   ##  ##   ##  ##           ##   ##   ##  ##     ##      ## ##   ##  ##
+    ##       ##   ##   ##  ##   ##               ##        ##         ##     # ## #   ##
+    ##       ##   ##   ##  ##   ## ##            ##  ###   ## ##      ##     ## ##    ## ##
+    ##       ##   ##   ##  ##   ##               ##   ##   ##         ##     ##  ##   ##
+    ##   ##  ##   ##   ##  ##   ##  ##           ##   ##   ##  ##     ##     ##  ##   ##  ##
+     ## ##    ## ##   ### ##   ### ###            ## ##   ### ###    ####   ###  ##  ### ### """
+    print(colored(logo, "green"))
 
 def filter_diff(diff_text):
     """Filters the diff to remove minified css and js files, and ignore deletions."""
@@ -282,10 +281,10 @@ def review_code_with_chatgpt(diff, chatgpt_api_key, prompt_to_use, args):
                 "max_tokens": MAX_TOKENS
             }
 
-            openai.api_type = "azure"
-            openai.api_base = "https://gxs-dev-gpt4-eastus2.openai.azure.com"
-            openai.api_version = "2024-02-15-preview"
-            openai.api_key = "69c55726c0dc442ab79dd2aa71336a0a"
+            openai.api_type = OPEN_AI_TYPE
+            openai.api_base = OPEN_AI_URL
+            openai.api_version = OPEN_AI_VERSION
+            openai.api_key = OPEN_API_KEY
             response = openai.ChatCompletion.create(
                 engine="gxsgpt4",
                 messages = [{"role": "system","content": prompt_to_use},{"role": "user","content": segment}],
