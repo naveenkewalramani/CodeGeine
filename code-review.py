@@ -156,7 +156,7 @@ def get_pull_request(owner, repo, pr_number):
         "Accept": "application/vnd.github.v3+json"
     }
     url = f"{GITHUB_API_URL}/repos/{owner}/{repo}/pulls/{pr_number}"
-    response = requests.get(url, headers=HEADERS)
+    response = requests.get(url, headers=HEADERS,verify=False)
     return response.json()
 
 
@@ -176,7 +176,7 @@ def get_pull_request_diff(owner, repo, pr_number):
         "Accept": "application/vnd.github.v3.diff"
     }
     url = f"{GITHUB_API_URL}/repos/{owner}/{repo}/pulls/{pr_number}.diff"
-    response = requests.get(url, headers=HEADERS)
+    response = requests.get(url, headers=HEADERS, verify=False)
     return filter_diff(response.text)
 
 def count_tokens(token_list):
@@ -355,8 +355,7 @@ def parse_arguments():
     parser.add_argument('-output', dest='output_file', default=None,
                         help='Filename to save the code review. If not provided, the review is printed to the console.')
     # Read the keys from the prompts object
-    keys_list = list(prompts.keys())
-    parser.add_argument('-type', dest='review_type', choices=keys_list, default="general",
+    parser.add_argument('-type', dest='review_type',nargs="*", default=['general'],
                         help=f'The type of code review to do. These will change if it reviews for security, performance etc.')
     parser.add_argument('-model', dest='model', choices=['gpt-4', 'gpt-3.5-turbo', 'gpt-3.5-turbo-16k'], default=None,
                         help='Change the model for this review')
@@ -370,7 +369,6 @@ def format_review(review, format_type):
     elif format_type == 'html':
         with open("review_template.html", 'r') as template_file:
             html_template = template_file.read()
-        
         # Split the review content by file sections
         file_sections = re.split(r'File: ', review)[1:]
         
@@ -407,6 +405,7 @@ if __name__ == "__main__":
             print(colored("An unexpected error occurred. Please ensure you have the config.json (OR ENV variables) and that they contain, keys, repo information, and model. Not found: ",'red'), e)
             exit()
         args = parse_arguments()
+        print("args", args)
         print("\n")
         print_asc_logo()
 
@@ -427,32 +426,28 @@ if __name__ == "__main__":
         else: 
             pr_number = display_pr_menu(prs) 
             pr = get_pull_request(repo_owner, repo_name, pr_number)
-        
-        print(f"Reviewing PR #{pr_number} - {pr['title']}")
-        
+        reviews = ""
         diff = get_pull_request_diff(repo_owner, repo_name, pr_number)
+        for reviewType in  args.review_type:
+            print(f"Reviewing PR #{pr_number} - {pr['title']} for review_type: {reviewType}")
+            review = review_code_with_chatgpt(diff, chatgpt_api_key, prompts[reviewType], args)
+            formatted_review = format_review(review, args.format)
+            if args.output_file:
+                # Check if 'out' directory exists, if not, create it
+                if not os.path.exists('out'):
+                    os.makedirs('out')
 
-        if args.review_type:
-            review = review_code_with_chatgpt(diff, chatgpt_api_key, prompts[args.review_type], args)
-        else: 
-            review = review_code_with_chatgpt(diff, chatgpt_api_key, prompt, args)
-        formatted_review = format_review(review, args.format)
-        
-
-        if args.output_file:
-            # Check if 'out' directory exists, if not, create it
-            if not os.path.exists('out'):
-                os.makedirs('out')
-
-            # Ensure the output is saved in the 'out' subdirectory
-            output_path = os.path.join('out', args.output_file)
-            with open(output_path, 'w') as file:
-                file.write(formatted_review)
+                # Ensure the output is saved in the 'out' subdirectory
+                fileName = "{}_{}.{}".format(args.output_file.split(".")[0], reviewType, args.output_file.split(".")[1])
+                print(fileName)
+                output_path = os.path.join('out',fileName)
+                with open(output_path, 'w') as file:
+                    file.write(formatted_review)
+                    print("\n")
+            else:
                 print("\n")
-        else:
-            print("\n")
-            print(formatted_review)
-            print("\n")
+                print(formatted_review)
+                print("\n")
     except KeyboardInterrupt:
         print("\n" * 2)
 
