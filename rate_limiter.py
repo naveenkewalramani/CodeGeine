@@ -42,7 +42,7 @@ class RateLimiter:
         elif self.reset_tokens_interval and now < self.reset_tokens_interval:
             time.sleep(self.reset_tokens_interval - now)
 
-    def make_request(self, url, method='GET', headers=None, data=None):
+    def make_request(self, url, method, headers, data):
         self.wait_until_reset()
 
         if self.remaining_requests <= 0 or self.remaining_tokens <= 0:
@@ -54,9 +54,7 @@ class RateLimiter:
         if method == 'GET':
             response = requests.get(url, headers=headers,  verify=False)
         elif method == 'POST':
-            print("data", url)
             response = requests.request("POST", url, headers=headers, data=json.dumps(data))
-#             response = requests.post(url, headers=headers, data=json.dumps(data),  verify=False)
         else:
             raise ValueError("Unsupported HTTP method")
 
@@ -79,6 +77,3 @@ class RateLimiter:
             self.remaining_tokens = int(response.headers.get('x-ratelimit-remaining-tokens'))
 
         return response
-
-#     def make_request2(self, url, method, headers, data):
-#         response = requests.request("POST", url, headers=headers, data=payload)

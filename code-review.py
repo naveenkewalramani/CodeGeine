@@ -11,12 +11,12 @@ from rate_limiter import RateLimiter
 import openai
 
 GITHUB_API_URL = "https://api.github.com"
-OPEN_AI_URL = "https://gxs-dev-gpt4-eastus2.openai.azure.com"
+OPEN_AI_URL = "https://gxs-dev-gpt4-eastus2.openai.azure.com/openai/deployments/gxsgpt4/chat/completions?api-version=2024-02-15-preview"
 OPEN_AI_VERSION = "2024-02-15-preview"
 OPEN_API_KEY = "69c55726c0dc442ab79dd2aa71336a0a"
 OPEN_AI_TYPE = "azure"
 HEADERS = {}
-TOKEN_SIZE = 8120                   # Max tokens to send at once when splitting diffs
+TOKEN_SIZE = 5120                   # Max tokens to send at once when splitting diffs
 MAX_TOKENS = 2048                   # response size
 MAX_DIFF_TOKEN_SIZE = 30000         # Max token size of a diff past which the code review is skipped
 PER_PAGE = 10                       # How many pull requests to display per page in the menu
@@ -233,12 +233,12 @@ def review_code_with_chatgpt(diff, chatgpt_api_key, prompt_to_use, args):
     This version of the function segments the diff by files.
     """
     headers = {
-        "Authorization": f"token {chatgpt_api_key}",
+        "api-key": f"{chatgpt_api_key}",
         "Content-Type": "application/json"
     }
     
     # Get token count 
-    tokenizer = tiktoken.get_encoding("gpt2")
+    tokenizer = tiktoken.encoding_for_model("gpt-4")
     
     # Segment the diff by files
     file_segments = segment_diff_by_files(diff)
@@ -281,14 +281,11 @@ def review_code_with_chatgpt(diff, chatgpt_api_key, prompt_to_use, args):
                 "max_tokens": MAX_TOKENS
             }
 
-            openai.api_type = OPEN_AI_TYPE
-            openai.api_base = OPEN_AI_URL
-            openai.api_version = OPEN_AI_VERSION
-            openai.api_key = OPEN_API_KEY
-            response = openai.ChatCompletion.create(
-                engine="gxsgpt4",
-                messages = [{"role": "system","content": prompt_to_use},{"role": "user","content": segment}],
-                temperature=0)
+            response = rate_limiter.make_request(OPEN_AI_URL, method="POST", headers=headers, data=data)
+            if response.status_code not in [429, 200]:
+                error_msg = response.json().get('error', {}).get('message', 'Unknown error')
+                print("-----------", response, OPEN_AI_URL)
+                return f"Review failed due to an error: {error_msg}"
             responses.append(response)
 
         # Aggregate responses for the current file segment
@@ -304,7 +301,7 @@ def get_full_review(responses):
     full_review = ""
     for response in responses:
         if response is not None: 
-            full_review += response.get('choices')[0].get('message', {}).get('content', '')
+            full_review += json.loads(response.content.decode("utf-8"))["choices"][0]["message"]["content"]
 
     return full_review
 
@@ -355,7 +352,7 @@ def parse_arguments():
     parser.add_argument('-output', dest='output_file', default=None,
                         help='Filename to save the code review. If not provided, the review is printed to the console.')
     # Read the keys from the prompts object
-    parser.add_argument('-type', dest='review_type',nargs="*", default=['general'],
+    parser.add_argument('-type', dest='review_type', nargs="*", default=['general'],
                         help=f'The type of code review to do. These will change if it reviews for security, performance etc.')
     parser.add_argument('-model', dest='model', choices=['gpt-4', 'gpt-3.5-turbo', 'gpt-3.5-turbo-16k'], default=None,
                         help='Change the model for this review')
@@ -375,7 +372,8 @@ def format_review(review, format_type):
         file_html_sections = []
         for section in file_sections:
             file_name, content = section.split('\n', 1)
-            file_html = f'<h2>File: {file_name}</h2><p>{content}</p>'
+            file_html = f'<h2>File: {file_name}</h2>'
+            file_html = file_html + "<p>{}</p>".format(content)
             file_html_sections.append(file_html)
         
         # Replace the placeholder in the template with the populated file sections
@@ -434,7 +432,6 @@ if __name__ == "__main__":
                 # Check if 'out' directory exists, if not, create it
                 if not os.path.exists('out'):
                     os.makedirs('out')
-
                 # Ensure the output is saved in the 'out' subdirectory
                 fileName = "{}_{}.{}".format(args.output_file.split(".")[0], reviewType, args.output_file.split(".")[1])
                 output_path = os.path.join('out',fileName)
