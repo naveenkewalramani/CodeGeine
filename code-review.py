@@ -16,7 +16,7 @@ OPEN_AI_VERSION = "2024-02-15-preview"
 OPEN_API_KEY = "69c55726c0dc442ab79dd2aa71336a0a"
 OPEN_AI_TYPE = "azure"
 HEADERS = {}
-TOKEN_SIZE = 5120                   # Max tokens to send at once when splitting diffs
+TOKEN_SIZE = 8120                   # Max tokens to send at once when splitting diffs
 MAX_TOKENS = 2048                   # response size
 MAX_DIFF_TOKEN_SIZE = 30000         # Max token size of a diff past which the code review is skipped
 PER_PAGE = 10                       # How many pull requests to display per page in the menu
@@ -405,8 +405,6 @@ if __name__ == "__main__":
             print(colored("An unexpected error occurred. Please ensure you have the config.json (OR ENV variables) and that they contain, keys, repo information, and model. Not found: ",'red'), e)
             exit()
         args = parse_arguments()
-        print("args", args)
-        print("\n")
         print_asc_logo()
 
         repo_own = input(colored(f"Enter a repo owner or enter to use the default [{repo_owner}]: ", "white"))
@@ -439,7 +437,6 @@ if __name__ == "__main__":
 
                 # Ensure the output is saved in the 'out' subdirectory
                 fileName = "{}_{}.{}".format(args.output_file.split(".")[0], reviewType, args.output_file.split(".")[1])
-                print(fileName)
                 output_path = os.path.join('out',fileName)
                 with open(output_path, 'w') as file:
                     file.write(formatted_review)
