@@ -16,7 +16,7 @@ OPEN_AI_VERSION = "2024-02-15-preview"
 OPEN_API_KEY = "69c55726c0dc442ab79dd2aa71336a0a"
 OPEN_AI_TYPE = "azure"
 HEADERS = {}
-TOKEN_SIZE = 5120                   # Max tokens to send at once when splitting diffs
+TOKEN_SIZE = 8120                   # Max tokens to send at once when splitting diffs
 MAX_TOKENS = 2048                   # response size
 MAX_DIFF_TOKEN_SIZE = 30000         # Max token size of a diff past which the code review is skipped
 PER_PAGE = 10                       # How many pull requests to display per page in the menu
@@ -25,13 +25,14 @@ next_url = None                     # The url for the next set of PR records
 
 def print_asc_logo():
     logo = """
-     ## ##    ## ##   ### ##   ### ###            ## ##   ### ###    ####   ###  ##  ### ###
-    ##   ##  ##   ##   ##  ##   ##  ##           ##   ##   ##  ##     ##      ## ##   ##  ##
-    ##       ##   ##   ##  ##   ##               ##        ##         ##     # ## #   ##
-    ##       ##   ##   ##  ##   ## ##            ##  ###   ## ##      ##     ## ##    ## ##
-    ##       ##   ##   ##  ##   ##               ##   ##   ##         ##     ##  ##   ##
-    ##   ##  ##   ##   ##  ##   ##  ##           ##   ##   ##  ##     ##     ##  ##   ##  ##
-     ## ##    ## ##   ### ##   ### ###            ## ##   ### ###    ####   ###  ##  ### ### """
+     ## ##    ## ##   ### ##   ### ###            ## ##   ### ###  ###  ##    ####   ### ###  
+    ##   ##  ##   ##   ##  ##   ##  ##           ##   ##   ##  ##    ## ##     ##     ##  ##  
+    ##       ##   ##   ##  ##   ##               ##        ##       # ## #     ##     ##      
+    ##       ##   ##   ##  ##   ## ##            ##  ###   ## ##    ## ##      ##     ## ##   
+    ##       ##   ##   ##  ##   ##               ##   ##   ##       ##  ##     ##     ##      
+    ##   ##  ##   ##   ##  ##   ##  ##           ##   ##   ##  ##   ##  ##     ##     ##  ##  
+     ## ##    ## ##   ### ##   ### ###           ## ##    ### ###  ###  ##    ####   ### ###  
+"""
     print(colored(logo, "green"))
 
 def filter_diff(diff_text):
