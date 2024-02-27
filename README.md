@@ -1,6 +1,6 @@
 # 🛠️ CodeGeine 🤖
 An automation tool that leverages OpenAI's GPT models to streamline code reviews on GitHub. With easy configuration options and a focus on efficiency, it's designed to enhance the code review process by providing AI-driven insights directly from GitHub diffs. 
-[Design Document](https://raw.github.com/ian-hickey/CodeReviewGPT/main/design.txt)
+[Design Document](https://github.com/naveenkewalramani/CodeGeine/blob/main/design.txt)
 
 * Easy and fast setup - takes about a minute once you have keys
 * Choose the pull request from a menu
@@ -9,8 +9,7 @@ An automation tool that leverages OpenAI's GPT models to streamline code reviews
 * Handles OpenAPI Rate Limiting
 
 ## 🖼️ Example Code Review
-![Menu](https://raw.github.com/ian-hickey/yacrb/main/Screenshot-Menu.png?raw=true "Code Review")
-![Code Review in terminal example](https://raw.github.com/ian-hickey/yacrb/main/example-edit-1.png?raw=true "Angular Code Review")
+![Menu]((https://github.com/naveenkewalramani/CodeGeine/blob/main/Screenshot-Menu.png?raw=true "Code Review")
 
 ## 🔑 Generating API Tokens:
 
@@ -64,24 +63,19 @@ Ensure you have the following environment variables set:
 * tiktoken
 * tqdm
 * termcolor
+* openai
 
 Ensure you have these libraries installed before running the script.
 Install:
 
-`pip install -r requirements.txt`
-
-If you get an error that PIP is not available, try running it with Python:
-`python -m pip install -r requirements.txt`
-  
-If you prefer you can install them manually:
-`pip install requests tiktoken tqdm termcolor`
+`pip3 install -r requirements.txt`
 
 # 🚀 Usage - Generate a code review!
 
 Set up your configuration using one of the methods mentioned above.
 Run the script using:
 
-`python code-review.py`
+`python3 code-review.py`
 
 The script will fetch pull requests and their diffs, and then use the OpenAI API to review the changes.
 
@@ -137,7 +131,7 @@ Default: If not provided, the default model defined in the script will be used.
 Usage: `-model gpt-4`
 
 #### Example Usage:
-`python code-review.py -format html -output review.html -type general -model gpt-4`
+`python3 code-review.py -format html -output review.html -model gpt-4 -type general`
 
 ### 📊 Constants
 * TOKEN_SIZE: This determines the maximum tokens to send at once when splitting diffs.
