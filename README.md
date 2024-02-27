@@ -9,7 +9,7 @@ An automation tool that leverages OpenAI's GPT models to streamline code reviews
 * Handles OpenAPI Rate Limiting
 
 ## 🖼️ Example Code Review
-![Menu]((https://github.com/naveenkewalramani/CodeGeine/blob/main/Screenshot-Menu.png?raw=true "Code Review")
+![Menu](https://github.com/naveenkewalramani/CodeGeine/blob/main/Screenshot-Menu.png?raw=true "Code Review")
 
 ## 🔑 Generating API Tokens:
 
